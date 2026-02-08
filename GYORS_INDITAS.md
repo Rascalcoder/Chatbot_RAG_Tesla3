@@ -104,11 +104,17 @@ Ha már látod a bal oldali panelt, ugorj a 2. lépésre!
 
 ### 5️⃣ ELSŐ VÁLASZ - VÁRHATÓ IDŐ
 
-**⚠️ ELSŐ válasz LASSÚ lesz (csak egyszer!):**
+**⚠️ Az első válasz ideje a konfigurációtól függ:**
 
-#### Miért?
-- **Qwen-4B LLM letöltése**: ~8GB (10-15 perc)
-- **Válasz generálás**: CPU-n 10-30 másodperc
+#### HIBRID Konfiguráció (Ajánlott - 8 GB RAM):
+- **MiniLM embedding letöltése**: ~90 MB (1-2 perc)
+- **Válasz generálás**: OpenAI API, gyors (~1-3 másodperc)
+- ✅ **Teljes első válasz**: ~2-3 perc
+
+#### Teljes Lokális Konfiguráció (16+ GB RAM):
+- **BGE-M3 + Qwen3-4B letöltése**: ~10 GB (10-20 perc)
+- **Válasz generálás**: CPU-n 10-30 másodperc, GPU-n 1-3 másodperc
+- ⚠️ **Teljes első válasz**: ~15-25 perc
 
 #### Mit látsz?
 ```

@@ -68,17 +68,31 @@ A böngészőben automatikusan megnyílik a `http://localhost:8501` címen.
 
 ## 🔧 Konfiguráció
 
-A projekt **BGE-M3 embedding modellt** és **Qwen-4B LLM-et** használ lokális modellekként.
+A projekt **HIBRID konfigurációt** támogat - rugalmasan választhatsz helyi és felhő alapú modellek között:
 
-A `.env` fájlban beállítható (opcionális, ha OpenAI-t szeretnél használni):
-- `OPENAI_API_KEY`: OpenAI API kulcs (csak ha OpenAI-t használsz)
-- `EMBEDDING_MODEL`: Embedding modell neve (alapértelmezett: `BAAI/bge-m3`)
-- `LLM_MODEL`: LLM modell neve (alapértelmezett: `Qwen/Qwen2.5-4B-Instruct`)
+### 🎯 Ajánlott Konfiguráció (8 GB RAM-hoz):
+- **Embedding**: `sentence-transformers/all-MiniLM-L6-v2` (helyi, ~90 MB)
+- **LLM**: `gpt-3.5-turbo` (OpenAI API, nincs RAM igény)
+- **RAM igény**: ~1-2 GB ✅
+
+### 🚀 Teljes Lokális Konfiguráció (16+ GB RAM-hoz):
+- **Embedding**: `BAAI/bge-m3` (helyi, ~1.2 GB)
+- **LLM**: `Qwen/Qwen3-4B-Instruct-2507` (helyi, ~8-10 GB)
+- **RAM igény**: ~12-15 GB
+
+A `.env` fájlban beállítható környezeti változók:
+- `OPENAI_API_KEY`: OpenAI API kulcs (ha OpenAI LLM-et használsz)
+- `EMBEDDING_MODEL`: Embedding modell neve
+  - Lokális: `BAAI/bge-m3`, `sentence-transformers/all-MiniLM-L6-v2`
+  - OpenAI: `text-embedding-ada-002`
+- `LLM_MODEL`: LLM modell neve
+  - Lokális: `Qwen/Qwen3-4B-Instruct-2507`
+  - OpenAI: `gpt-3.5-turbo`, `gpt-4`
 - `VECTOR_DB_PATH`: Vektor adatbázis elérési útja
 - `CHUNK_SIZE`: Dokumentum chunk méret (alapértelmezett: 1000)
 - `CHUNK_OVERLAP`: Chunk átfedés (alapértelmezett: 200)
 
-**Fontos**: A BGE-M3 és Qwen-4B modellek automatikusan letöltődnek az első használatkor (~8-10 GB).
+**Fontos**: A helyi modellek automatikusan letöltődnek az első használatkor. A rendszer automatikusan felismeri az OpenAI modelleket (ha a modell név tartalmazza a "gpt-" előtagot).
 
 ## 📁 Projekt Struktúra
 

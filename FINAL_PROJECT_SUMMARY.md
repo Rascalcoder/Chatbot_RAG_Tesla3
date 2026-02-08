@@ -255,15 +255,15 @@ python run_evaluation.py --type all
 ## ✨ KIEMELT JELLEMZŐK
 
 ### 🔴 **RAG Rendszer**
-- **BGE-M3** 1024-dimenziós embedding
+- **HIBRID embedding**: MiniLM (8GB RAM) vagy BGE-M3 (16GB RAM)
 - **ChromaDB** vector adatbázis
 - **Top-K retrieval** + **reranking**
 - **Semantic search** teljes támogatás
 
 ### 🟢 **LLM Integráció**
-- **Qwen-4B** helyi modell
+- **HIBRID LLM**: GPT-3.5-turbo (felhő) vagy Qwen3-4B (lokális)
 - **Streaming** inferencia
-- **GPU támogatás** (CUDA/CPU fallback)
+- **Automatikus modell detekció** (OpenAI vs lokális)
 - **Intelligens prompt engineering**
 
 ### 🔵 **Monitoring & Analytics**

@@ -90,7 +90,7 @@ Dátum: 2026-02-02
 - ChromaDB vector store
 - Retrieval engine (Top-K: 5)
 - Reranker (Top-3)
-- Qwen-4B LLM (lokális)
+- HIBRID LLM support (OpenAI vagy lokális)
 - Streaming generator
 - Metrics collector
 
@@ -100,15 +100,17 @@ Dátum: 2026-02-02
 - `get_stats()`: Statisztikák lekérése
 
 **Kritikus megfigyelések**:
-- ⚠️ **FIGYELEM**: BGE-M3 (~2GB) és Qwen-4B (~8GB) modellek első futtatáskor letöltődnek!
+- ⚠️ **HIBRID KONFIG**: MiniLM (~90MB) + OpenAI = ~1-2 GB RAM
+- ⚠️ **LOKÁLIS KONFIG**: BGE-M3 (~1.2GB) + Qwen3-4B (~8GB) = ~12-15 GB RAM
+- ✅ Automatikus modell detekció (OpenAI vs lokális)
 - ✅ CPU fallback implementálva (ha nincs GPU)
 - ✅ Error handling minden szinten
 - ✅ Metrics tracking működik
 
 ### 4.2 LLM Generator (src/llm/generator.py)
 ✅ **Támogatott módok**:
-- OpenAI API (opcionális)
-- Lokális Qwen-4B modell (alapértelmezett)
+- OpenAI API (gpt-3.5-turbo, gpt-4) - HIBRID konfighoz
+- Lokális Qwen3-4B modell - Teljes lokális konfighoz
 
 ✅ **Funkciók**:
 - Streaming generálás
@@ -116,17 +118,20 @@ Dátum: 2026-02-02
 - Token számítás
 - Temperature control
 - Max tokens limit
+- Automatikus modell detekció (gpt-* prefix alapján)
 
 **Kritikus megfigyelések**:
-- ⚠️ **CPU-n lassú lehet** (~10-30s/válasz Qwen-4B-vel)
+- ⚠️ **OpenAI**: Gyors (~1-3s), költség (~$0.0005/válasz), API kulcs kell
+- ⚠️ **Lokális Qwen3-4B**: CPU-n lassú (~10-30s), GPU-n gyors (~1-3s)
 - ✅ CUDA automatikus detektálás
 - ✅ float16/float32 automatikus választás
 - ✅ Memory optimalizáció implementálva
 
 ### 4.3 Embedding Model (src/rag/embeddings.py)
 ✅ **Támogatott modellek**:
-- BGE-M3 (lokális, 1024 dim, ajánlott)
-- OpenAI embeddings (opcionális)
+- MiniLM (lokális, 384 dim, kis RAM) - HIBRID konfighoz
+- BGE-M3 (lokális, 1024 dim, nagy RAM) - Teljes lokális konfighoz
+- OpenAI embeddings (text-embedding-ada-002, opcionális)
 - Sentence-Transformers modellek
 
 ✅ **Optimalizációk**:

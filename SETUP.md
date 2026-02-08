@@ -8,18 +8,20 @@
 pip install -r requirements.txt
 ```
 
-### 2. Környezeti Változók Beállítása (Opcionális)
+### 2. Környezeti Változók Beállítása
 
-A projekt alapértelmezetten **BGE-M3 embedding** és **Qwen-4B LLM** lokális modelleket használ.
-Ha szeretnél `.env` fájlt létrehozni (opcionális, csak ha más modelleket szeretnél):
+A projekt **HIBRID konfigurációt** támogat. Válassz a gépednek megfelelő beállítást:
 
+#### 🎯 Opció A: Hibrid (Ajánlott 8 GB RAM-hoz)
 ```env
-# Opcionális - csak ha OpenAI-t szeretnél használni
+# .env fájl
 OPENAI_API_KEY=your_api_key_here
 
-# Alapértelmezett lokális modellek (nem kell beállítani)
-EMBEDDING_MODEL=BAAI/bge-m3
-LLM_MODEL=Qwen/Qwen2.5-4B-Instruct
+# Kis lokális embedding (~90 MB)
+EMBEDDING_MODEL=sentence-transformers/all-MiniLM-L6-v2
+
+# Felhő LLM (nincs RAM igény)
+LLM_MODEL=gpt-3.5-turbo
 
 VECTOR_DB_PATH=./data/vector_db
 CHUNK_SIZE=1000
@@ -27,7 +29,23 @@ CHUNK_OVERLAP=200
 TOP_K=5
 ```
 
-**Megjegyzés**: Az első futtatáskor a modellek automatikusan letöltődnek (~8-10 GB).
+#### 🚀 Opció B: Teljes Lokális (16+ GB RAM)
+```env
+# .env fájl (vagy használd a .env.example-t)
+# Teljes lokális modellek
+EMBEDDING_MODEL=BAAI/bge-m3
+LLM_MODEL=Qwen/Qwen3-4B-Instruct-2507
+
+VECTOR_DB_PATH=./data/vector_db
+CHUNK_SIZE=1000
+CHUNK_OVERLAP=200
+TOP_K=5
+```
+
+**Megjegyzés**:
+- Hibrid konfignál csak az embedding modell töltődik le (~90 MB)
+- Teljes lokális konfignál ~10 GB modell töltődik le az első futtatáskor
+- A rendszer automatikusan felismeri az OpenAI modelleket (gpt-* prefix alapján)
 
 ### 3. Alkalmazás Indítása
 

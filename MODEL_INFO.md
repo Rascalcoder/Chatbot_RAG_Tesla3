@@ -1,29 +1,81 @@
 # Modell Információk
 
-## Használt Modellek
+## 🎯 Támogatott Konfigurációk
 
-### BGE-M3 Embedding Modell
+A projekt **HIBRID konfigurációt** támogat - választhatsz a rendszered szerint.
+
+### Konfiguráció A: Hibrid (Ajánlott 8 GB RAM-hoz)
+**Embedding**: Helyi kis modell
+**LLM**: OpenAI felhő API
+
+### Konfiguráció B: Teljes Lokális (16+ GB RAM-hoz)
+**Embedding**: Helyi nagy modell
+**LLM**: Helyi Qwen modell
+
+---
+
+## Embedding Modellek
+
+### 🔹 MiniLM (Kis, Gyors)
+- **Modell**: `sentence-transformers/all-MiniLM-L6-v2`
+- **Dimenzió**: 384
+- **Méret**: ~90 MB
+- **RAM igény**: ~500 MB
+- **Használat**: Kisebb rendszerekhez, HIBRID konfigurációhoz
+- **Könyvtár**: sentence-transformers
+
+**Előnyök**: Gyors, kis memóriaigény, megfelelő pontosság
+**Hátrányok**: Kisebb dimenzió (384 vs 1024)
+
+### 🔹 BGE-M3 (Nagy, Pontos)
 - **Modell**: `BAAI/bge-m3`
-- **Típus**: Multilingual embedding modell
 - **Dimenzió**: 1024
-- **Használat**: Dokumentumok és query-k embedding generálásához
+- **Méret**: ~1.2 GB
+- **RAM igény**: ~2-3 GB
+- **Használat**: Teljes lokális konfigurációhoz
 - **Könyvtár**: FlagEmbedding vagy sentence-transformers
-- **Méret**: ~2.2 GB
+
+**Előnyök**: Magas pontosság, multilingual támogatás
+**Hátrányok**: Nagyobb memóriaigény
 
 **Telepítés**:
 ```bash
 pip install FlagEmbedding sentence-transformers
 ```
 
-**Első használatkor** automatikusan letöltődik a Hugging Face-ről.
+---
 
-### Qwen-4B LLM Modell
-- **Modell**: `Qwen/Qwen2.5-4B-Instruct`
-- **Típus**: Instruct-finetuned nyelvi modell
-- **Méret**: ~8 GB
-- **Használat**: Válaszgenerálás RAG kontextussal
+## LLM Modellek
+
+### 🔹 OpenAI GPT-3.5-turbo (Felhő)
+- **Modell**: `gpt-3.5-turbo`
+- **Típus**: OpenAI API
+- **Költség**: ~$0.0005-0.001 / válasz
+- **RAM igény**: 0 GB (felhő)
+- **Sebesség**: Gyors (~1-3 másodperc)
+- **Használat**: HIBRID konfigurációhoz
+
+**Előnyök**: Nincs RAM igény, gyors, megbízható
+**Hátrányok**: API kulcs és internet szükséges, költség
+
+**Beállítás**:
+```env
+OPENAI_API_KEY=your_api_key_here
+LLM_MODEL=gpt-3.5-turbo
+```
+
+### 🔹 Qwen3-4B (Lokális)
+- **Modell**: `Qwen/Qwen3-4B-Instruct-2507`
+- **Típus**: Instruction-tuned nyelvi modell
+- **Méret**: ~8-10 GB
+- **RAM igény**: ~10-12 GB
+- **Sebesség**: Lassabb CPU-n (~10-30s), gyors GPU-n (~1-3s)
+- **Használat**: Teljes lokális konfigurációhoz
 - **Könyvtár**: transformers (Hugging Face)
 - **Támogatás**: Streaming válaszok
+
+**Előnyök**: Ingyenes, privát, offline működés
+**Hátrányok**: Nagy RAM igény, lassabb CPU-n
 
 **Telepítés**:
 ```bash

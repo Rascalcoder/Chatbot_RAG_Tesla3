@@ -1,0 +1,23 @@
+====================================== 
+DIAGNOSTIC LOG 
+====================================== 
+ 
+[1] Python version: 
+Python 3.10.2
+ 
+[2] Streamlit import test: 
+Streamlit OK: 1.46.1
+ 
+[3] Pandas/Numpy test: 
+pandas: 2.3.3
+numpy: 2.2.6
+ 
+[4] Langchain test: 
+langchain_text_splitters OK
+ 
+[5] RAG system import test: 
+RAGSystem OK
+ 
+====================================== 
+DONE - Check diagnose_log.txt 
+====================================== 

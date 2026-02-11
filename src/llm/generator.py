@@ -32,7 +32,7 @@ class LLMGenerator:
             use_openai: Használjon-e OpenAI API-t (False = lokális Qwen)
         """
         self.use_openai = use_openai
-        self.model_name = model_name or os.getenv('LLM_MODEL', 'Qwen/Qwen3-4B-Instruct-2507')
+        self.model_name = model_name or os.getenv('LLM_MODEL', 'gpt-3.5-turbo')
         self.temperature = temperature
         self.max_tokens = max_tokens
         self._client = None
@@ -64,12 +64,13 @@ class LLMGenerator:
             raise
     
     def _init_local(self):
-        """Lokális Qwen-4B modell inicializálása"""
+        """Lokális LLM modell inicializálása"""
         try:
             from transformers import AutoModelForCausalLM, AutoTokenizer
             import torch
             
-            hf_token = ensure_hf_token_env()
+            # Get HF token (silent mode if using public models)
+            hf_token = ensure_hf_token_env(silent=False)
             
             device = "cuda" if torch.cuda.is_available() else "cpu"
             logger.info(f"Qwen-4B modell betöltése: {self.model_name} (device: {device})")
@@ -210,14 +211,20 @@ mondd el, hogy nem tudod megválaszolni a kérdést a rendelkezésre álló info
         return messages
     
     def _format_context(self, context: List[Dict[str, Any]]) -> str:
-        """Kontextus formázása"""
+        """Kontextus formázása oldalszámmal"""
         context_parts = []
         for i, doc in enumerate(context, 1):
             text = doc.get('text', '')
             metadata = doc.get('metadata', {})
             file_name = metadata.get('file_name', 'Ismeretlen')
+            page_number = metadata.get('page_number')
             
-            context_parts.append(f"[{i}] {file_name}:\n{text}\n")
+            # Forrás információ oldalszámmal
+            source_info = f"[{i}] {file_name}"
+            if page_number:
+                source_info += f" (Oldal: {page_number})"
+            
+            context_parts.append(f"{source_info}:\n{text}\n")
         
         return "\n---\n".join(context_parts)
     

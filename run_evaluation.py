@@ -44,9 +44,19 @@ def run_rag_evaluation():
         
         logger.info(f"RAG evaluation befejezve. Eredmények: {output_path}")
         print("\n=== RAG Evaluation Eredmények ===")
-        print(f"Retrieval Precision: {results.get('retrieval_metrics', {}).get('precision', 0):.3f}")
-        print(f"Retrieval Recall: {results.get('retrieval_metrics', {}).get('recall', 0):.3f}")
-        print(f"MRR: {results.get('retrieval_metrics', {}).get('mrr', 0):.3f}")
+        rm = results.get('retrieval_metrics', {})
+        # Új kulcsszó alapú formátum
+        if 'keyword_metrics' in rm:
+            km = rm['keyword_metrics']
+            br = rm.get('basic_retrieval', {})
+            print(f"Retrieval Precision (kulcsszó): {km.get('precision', 0):.3f}")
+            print(f"Retrieval Recall (kulcsszó): {km.get('recall', 0):.3f}")
+            print(f"MRR (kulcsszó): {km.get('mrr', 0):.3f}")
+            print(f"Általános retrieval sikeresség: {br.get('success_rate', 0):.1%}")
+        else:
+            print(f"Retrieval Precision: {rm.get('precision', 0):.3f}")
+            print(f"Retrieval Recall: {rm.get('recall', 0):.3f}")
+            print(f"MRR: {rm.get('mrr', 0):.3f}")
         
         return results
     
@@ -145,7 +155,7 @@ def main():
         if args.type in ['app', 'all']:
             run_app_evaluation()
         
-        print("\n✅ Összes evaluation befejezve!")
+        print("\n[OK] Osszes evaluation befejezve!")
     
     except Exception as e:
         logger.error(f"Evaluation hiba: {e}")

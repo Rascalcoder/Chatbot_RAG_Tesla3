@@ -53,7 +53,6 @@
 
 - [x] ✅ **data/vector_db/** - ChromaDB vektor adatbázis
 - [x] ✅ **model_3.pdf** - Tesla Model 3 Kézikönyv teszt dokumentum
-- [x] ✅ **HUGGINGFACE_HUB_TOKEN.env** - HuggingFace token konfiguráció
 
 ### 4. Tesztelési Fájlok
 

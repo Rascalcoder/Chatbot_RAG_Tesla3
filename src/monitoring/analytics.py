@@ -35,22 +35,37 @@ class Analytics:
         
         recent_metrics = [
             m for m in self.metrics_collector.metrics
-            if datetime.fromisoformat(m['timestamp']) >= cutoff_date
+            if m['type'] == 'llm_call' and datetime.fromisoformat(m['timestamp']) >= cutoff_date
         ]
-        
+
         if not recent_metrics:
-            return pd.DataFrame()
-        
-        df = pd.DataFrame(recent_metrics)
-        df['timestamp'] = pd.to_datetime(df['timestamp'])
-        df['date'] = df['timestamp'].dt.date
-        
-        daily_stats = df.groupby('date').agg({
-            'total_tokens': 'sum',
-            'cost': 'sum'
-        }).reset_index()
-        
-        return daily_stats
+            return pd.DataFrame(columns=['date', 'total_tokens', 'cost'])
+
+        try:
+            df = pd.DataFrame(recent_metrics)
+            df['timestamp'] = pd.to_datetime(df['timestamp'])
+            df['date'] = df['timestamp'].dt.date
+
+            # Fill missing values with 0
+            if 'total_tokens' not in df.columns:
+                df['total_tokens'] = 0
+            else:
+                df['total_tokens'] = df['total_tokens'].fillna(0)
+
+            if 'cost' not in df.columns:
+                df['cost'] = 0
+            else:
+                df['cost'] = df['cost'].fillna(0)
+
+            daily_stats = df.groupby('date').agg({
+                'total_tokens': 'sum',
+                'cost': 'sum'
+            }).reset_index()
+
+            return daily_stats
+        except Exception as e:
+            logger.error(f"Hiba a napi használat lekérdezésénél: {e}")
+            return pd.DataFrame(columns=['date', 'total_tokens', 'cost'])
     
     def get_model_usage(self) -> Dict[str, Any]:
         """
@@ -60,19 +75,34 @@ class Analytics:
             Dict modell statisztikákkal
         """
         llm_calls = [m for m in self.metrics_collector.metrics if m['type'] == 'llm_call']
-        
+
         if not llm_calls:
             return {}
-        
-        df = pd.DataFrame(llm_calls)
-        
-        model_stats = df.groupby('model').agg({
-            'total_tokens': 'sum',
-            'cost': 'sum',
-            'model': 'count'
-        }).rename(columns={'model': 'count'}).to_dict('index')
-        
-        return model_stats
+
+        try:
+            df = pd.DataFrame(llm_calls)
+
+            # Fill missing values with 0
+            if 'total_tokens' not in df.columns:
+                df['total_tokens'] = 0
+            else:
+                df['total_tokens'] = df['total_tokens'].fillna(0)
+
+            if 'cost' not in df.columns:
+                df['cost'] = 0
+            else:
+                df['cost'] = df['cost'].fillna(0)
+
+            model_stats = df.groupby('model').agg({
+                'total_tokens': 'sum',
+                'cost': 'sum',
+                'model': 'count'
+            }).rename(columns={'model': 'count'}).to_dict('index')
+
+            return model_stats
+        except Exception as e:
+            logger.error(f"Hiba a modell használat lekérdezésénél: {e}")
+            return {}
     
     def get_latency_trends(self, days: int = 7) -> pd.DataFrame:
         """

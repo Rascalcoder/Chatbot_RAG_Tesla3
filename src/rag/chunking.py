@@ -66,18 +66,50 @@ class ChunkingStrategy:
         chunks = self.splitter.split_text(text)
         
         chunk_docs = []
+        last_page_number = None  # Track last seen page number
+        
         for idx, chunk in enumerate(chunks):
+            # Oldalszám detektálása a chunk szövegéből ([PAGE X] marker)
+            page_number = self._extract_page_number(chunk)
+            
+            # Ha nem találunk page markert, használjuk az utolsó ismert oldalszámot
+            if page_number:
+                last_page_number = page_number
+            elif last_page_number:
+                page_number = last_page_number
+            
+            # Tisztított szöveg (PAGE marker eltávolítása)
+            clean_text = self._remove_page_markers(chunk)
+            
             chunk_doc = {
-                'text': chunk,
+                'text': clean_text,
                 'chunk_index': idx,
-                'chunk_size': len(chunk),
+                'chunk_size': len(clean_text),
                 'metadata': metadata.copy() if metadata else {}
             }
             chunk_doc['metadata']['chunk_index'] = idx
+            
+            # Oldalszám hozzáadása a metadatához
+            if page_number:
+                chunk_doc['metadata']['page_number'] = page_number
+            
             chunk_docs.append(chunk_doc)
         
         logger.info(f"Szöveg {len(chunk_docs)} chunkra bontva")
         return chunk_docs
+    
+    def _extract_page_number(self, text: str) -> int | None:
+        """Oldalszám kinyerése a [PAGE X] markerből"""
+        import re
+        match = re.search(r'\[PAGE (\d+)\]', text)
+        if match:
+            return int(match.group(1))
+        return None
+    
+    def _remove_page_markers(self, text: str) -> str:
+        """[PAGE X] markerek eltávolítása a szövegből"""
+        import re
+        return re.sub(r'\[PAGE \d+\]\s*', '', text)
     
     def chunk_document(self, document: Dict[str, Any]) -> List[Dict[str, Any]]:
         """

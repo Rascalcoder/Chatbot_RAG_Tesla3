@@ -226,19 +226,3 @@ Projekt készítő: [Név]
 
 Sikeres használatot kívánunk! 🚀
 
-## 🔐 HuggingFace token (biztonság)
-
-Ha a projekt HuggingFace modellekhez hozzáférést igényel, a token kezelése legyen biztonságos:
-
-- Ajánlott: futtasd a `huggingface-cli login` parancsot (telepítsd a `huggingface-hub`-ot), ez menti a tokent lokálisan a cache-be.
-- Alternatíva: hozz létre egy lokális `.env` fájlt a projekt gyökerében (ne committeld):
-
-```env
-# .env (NE add hozzá a git-hez)
-HUGGINGFACE_HUB_TOKEN=hf_xxxYOURTOKENxxxxx
-```
-
-- Ügyelj rá, hogy a `HUGGINGFACE_HUB_TOKEN.env` vagy `.env` fájlok NEM kerüljenek a verziókezelésbe; a projekt `.gitignore` tartalmazza ezeket.
-
-Ha bizonytalan vagy, használd a `huggingface-cli login`-t.
-

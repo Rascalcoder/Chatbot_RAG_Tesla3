@@ -61,116 +61,86 @@ Tesla Model 3 Manual lefedettség:
 # RAG szintű teszt esetek
 # Minimum 20 teszteset követelmény teljesítése (most 38 Tesla-specifikus teszt!)
 RAG_TEST_CASES = {
-    'retrieval_tests': {
-        'queries': [
-            # ===== TESLA MODEL 3 MANUAL SPECIFIKUS TESZTEK (20+) =====
-            # Zárak és biztonság (7 teszt)
-            "Walk Away Lock bekapcsolása és kikapcsolása",
-            "Walk Up Unlock hogyan működik",
-            "Unlock on Park beállítás",
-            "Hogyan nyílik a csomagtartó kívülről és belülről emergency release",
-            "Ablakok működtetése kétállású kapcsoló és biztonsági figyelmeztetés",
-            "Key card használat manuális zárás és nyitás",
-            "Bluetooth phone key mikor nem old fel automatikusan",
-            
-            # Tire Repair Kit (5 teszt)
-            "Temporary Tire Repair sealant használat lépései",
-            "Temporary Tire Repair Inflating with Air Only lépések",
-            "Kompresszor túlmelegedés max 8 perc és hűtés 15 perc",
-            "Sealant canister cseréje lépésről lépésre",
-            "12V power socket hol van tire compressor csatlakozás",
-            
-            # Karbantartás és tisztítás (2 teszt)
-            "Külső tisztítás káros anyagok eltávolítása bird droppings road salt",
-            "Gumijavító készlet adapterek hol találhatók",
-            
-            # Telematics és adatvédelem (3 teszt)
-            "Telematics milyen adatokat rögzít a jármű charging events VIN location",
-            "Telematics mikor adja ki Tesla harmadik félnek az adatokat",
-            "Data Sharing hol lehet engedélyezni a képernyőn Controls Settings Data Sharing",
-            
-            # Jelzések és figyelmeztetések (3 teszt)
-            "Ajtó ajtózár mikor villan a külső fény unlock jelzés",
-            "Door Open indicator jelentése",
-            "Töltés miért lassabb ha hideg az akkumulátor vagy közel van a 100 százalékhoz",
-            
-            # Driver Assistance (1 teszt)
-            "Autopilot driver assistance alap korlátozások és felelősség",
-            
-            # ===== ÁLTALÁNOS DOKUMENTUM TESZTEK (18 teszt) =====
-            # Általános információ keresés (5 teszt)
-            "Mi a fő témája a dokumentumnak?",
-            "Mik a legfontosabb pontok?",
-            "Mi a dokumentum szerzője?",
-            "Mikor készült ez a dokumentum?",
-            "Mi a dokumentum célja?",
-            
-            # Konkrét információk keresése (5 teszt)
-            "Milyen számok vagy adatok szerepelnek a dokumentumban?",
-            "Mik a kulcsfontosságú fogalmak?",
-            "Milyen dátumok vagy időpontok vannak említve?",
-            "Mik a dokumentumban szereplő főbb szervezetek vagy cégek?",
-            "Milyen helyszínek vagy országok szerepelnek?",
-            
-            # Összetett kérdések (5 teszt)
-            "Hogyan kapcsolódik össze az információ a dokumentumban?",
-            "Mi a kapcsolat a különböző részek között?",
-            "Milyen következtetések vonhatók le?",
-            "Mik a dokumentum főbb következményei?",
-            "Mi a dokumentum ajánlása vagy javaslata?",
-            
-            # Specifikus részletek (3 teszt)
-            "Mi a pontos definíciója a fő fogalomnak?",
-            "Milyen példák szerepelnek a dokumentumban?",
-            "Mik a dokumentum szerint a legfontosabb tények?",
-        ],
-        'ground_truth': [
-            # ===== TESLA MODEL 3 QUERIES (21 teszt) =====
-            # Ground truth chunk-ok Tesla manual specifikus kérdésekhez
-            # (Ezek példák - valós használatkor a manual alapján kell feltölteni)
-            ['locks_section_chunk_1', 'locks_section_chunk_2'],  # Q1: Walk Away Lock
-            ['locks_section_chunk_3'],  # Q2: Walk Up Unlock
-            ['locks_section_chunk_4'],  # Q3: Unlock on Park
-            ['trunk_section_chunk_1', 'trunk_section_chunk_2'],  # Q4: Csomagtartó emergency
-            ['windows_section_chunk_1'],  # Q5: Ablakok működtetése
-            ['keys_section_chunk_1'],  # Q6: Key card használat
-            ['keys_section_chunk_2', 'keys_section_chunk_3'],  # Q7: Phone key problémák
-            ['tire_repair_chunk_1', 'tire_repair_chunk_2'],  # Q8: Sealant lépések
-            ['tire_repair_chunk_3'],  # Q9: Air only inflate
-            ['tire_repair_chunk_4'],  # Q10: Kompresszor limit
-            ['tire_repair_chunk_5', 'tire_repair_chunk_6'],  # Q11: Sealant csere
-            ['tire_repair_chunk_7'],  # Q12: 12V socket
-            ['cleaning_section_chunk_1'],  # Q13: Káros anyagok
-            ['tire_repair_chunk_8'],  # Q14: Adapter helye
-            ['telematics_chunk_1', 'telematics_chunk_2'],  # Q15: Telematics adatok
-            ['telematics_chunk_3'],  # Q16: Adatkiadás feltételei
-            ['data_sharing_chunk_1'],  # Q17: Data Sharing menü
-            ['locks_section_chunk_5'],  # Q18: Ajtó fény jelzés
-            ['door_indicators_chunk_1'],  # Q19: Door Open indicator
-            ['charging_chunk_1', 'charging_chunk_2'],  # Q20: Töltés lassulás
-            ['autopilot_chunk_1'],  # Q21: Autopilot korlátozások
-            
-            # ===== ÁLTALÁNOS QUERIES (18 teszt) =====
-            ['chunk_0', 'chunk_1'],  # Q22: fő téma
-            ['chunk_2', 'chunk_3'],  # Q23: legfontosabb pontok
-            ['chunk_0'],  # Q24: szerző
-            ['chunk_1', 'chunk_4'],  # Q25: dátum
-            ['chunk_0', 'chunk_2'],  # Q26: cél
-            ['chunk_3', 'chunk_5', 'chunk_6'],  # Q27: számok/adatok
-            ['chunk_1', 'chunk_2'],  # Q28: fogalmak
-            ['chunk_4', 'chunk_7'],  # Q29: dátumok
-            ['chunk_5', 'chunk_8'],  # Q30: szervezetek
-            ['chunk_6', 'chunk_9'],  # Q31: helyszínek
-            ['chunk_0', 'chunk_1', 'chunk_2'],  # Q32: kapcsolatok
-            ['chunk_2', 'chunk_3'],  # Q33: részek kapcsolata
-            ['chunk_3', 'chunk_4'],  # Q34: következtetések
-            ['chunk_4', 'chunk_5'],  # Q35: következmények
-            ['chunk_5', 'chunk_6'],  # Q36: ajánlások
-            ['chunk_1'],  # Q37: definíció
-            ['chunk_2', 'chunk_3'],  # Q38: példák
-            ['chunk_0', 'chunk_1', 'chunk_2'],  # Q39: tények (18. általános)
-        ]
-    },
+    'retrieval_tests': [
+        # ===== TESLA MODEL 3 MANUAL SPECIFIKUS TESZTEK (21 db) =====
+        # Kulcsszó alapú értékelés: a retrieval által visszaadott chunkokban
+        # keressük az elvárt kulcsszavakat (case-insensitive substring match)
+
+        # Zárak és biztonság (7 teszt)
+        {'query': 'Walk Away Lock bekapcsolása és kikapcsolása',
+         'expected_keywords': ['walk away lock'], 'category': 'Zárak és biztonság'},
+        {'query': 'Walk Up Unlock hogyan működik',
+         'expected_keywords': ['walk up unlock'], 'category': 'Zárak és biztonság'},
+        {'query': 'Unlock on Park beállítás',
+         'expected_keywords': ['unlock', 'park'], 'category': 'Zárak és biztonság'},
+        {'query': 'Hogyan nyílik a csomagtartó kívülről és belülről emergency release',
+         'expected_keywords': ['trunk', 'emergency'], 'category': 'Zárak és biztonság'},
+        {'query': 'Ablakok működtetése kétállású kapcsoló és biztonsági figyelmeztetés',
+         'expected_keywords': ['window'], 'category': 'Zárak és biztonság'},
+        {'query': 'Key card használat manuális zárás és nyitás',
+         'expected_keywords': ['key card'], 'category': 'Zárak és biztonság'},
+        {'query': 'Bluetooth phone key mikor nem old fel automatikusan',
+         'expected_keywords': ['phone key'], 'category': 'Zárak és biztonság'},
+
+        # Tire Repair Kit (5 teszt)
+        {'query': 'Temporary Tire Repair sealant használat lépései',
+         'expected_keywords': ['sealant'], 'category': 'Tire Repair Kit'},
+        {'query': 'Temporary Tire Repair Inflating with Air Only lépések',
+         'expected_keywords': ['inflate'], 'category': 'Tire Repair Kit'},
+        {'query': 'Kompresszor túlmelegedés max 8 perc és hűtés 15 perc',
+         'expected_keywords': ['compressor'], 'category': 'Tire Repair Kit'},
+        {'query': 'Sealant canister cseréje lépésről lépésre',
+         'expected_keywords': ['sealant', 'canister'], 'category': 'Tire Repair Kit'},
+        {'query': '12V power socket hol van tire compressor csatlakozás',
+         'expected_keywords': ['12v'], 'category': 'Tire Repair Kit'},
+
+        # Karbantartás és tisztítás (2 teszt)
+        {'query': 'Külső tisztítás káros anyagok eltávolítása bird droppings road salt',
+         'expected_keywords': ['clean'], 'category': 'Karbantartás'},
+        {'query': 'Gumijavító készlet adapterek hol találhatók',
+         'expected_keywords': ['tire', 'repair'], 'category': 'Karbantartás'},
+
+        # Telematics és adatvédelem (3 teszt)
+        {'query': 'Telematics milyen adatokat rögzít a jármű charging events VIN location',
+         'expected_keywords': ['telematics'], 'category': 'Telematics'},
+        {'query': 'Telematics mikor adja ki Tesla harmadik félnek az adatokat',
+         'expected_keywords': ['telematics', 'data'], 'category': 'Telematics'},
+        {'query': 'Data Sharing hol lehet engedélyezni a képernyőn Controls Settings Data Sharing',
+         'expected_keywords': ['data sharing'], 'category': 'Telematics'},
+
+        # Jelzések és figyelmeztetések (3 teszt)
+        {'query': 'Ajtó ajtózár mikor villan a külső fény unlock jelzés',
+         'expected_keywords': ['door', 'lock'], 'category': 'Jelzések'},
+        {'query': 'Door Open indicator jelentése',
+         'expected_keywords': ['door'], 'category': 'Jelzések'},
+        {'query': 'Töltés miért lassabb ha hideg az akkumulátor vagy közel van a 100 százalékhoz',
+         'expected_keywords': ['charg'], 'category': 'Jelzések'},
+
+        # Driver Assistance (1 teszt)
+        {'query': 'Autopilot driver assistance alap korlátozások és felelősség',
+         'expected_keywords': ['autopilot'], 'category': 'Driver Assistance'},
+
+        # ===== ÁLTALÁNOS DOKUMENTUM TESZTEK (18 teszt) =====
+        # Kulcsszó nélkül: csak azt teszteljük, hogy a retrieval visszaad-e találatot
+        {'query': 'Mi a fő témája a dokumentumnak?', 'expected_keywords': [], 'category': 'Általános'},
+        {'query': 'Mik a legfontosabb pontok?', 'expected_keywords': [], 'category': 'Általános'},
+        {'query': 'Mi a dokumentum szerzője?', 'expected_keywords': [], 'category': 'Általános'},
+        {'query': 'Mikor készült ez a dokumentum?', 'expected_keywords': [], 'category': 'Általános'},
+        {'query': 'Mi a dokumentum célja?', 'expected_keywords': [], 'category': 'Általános'},
+        {'query': 'Milyen számok vagy adatok szerepelnek a dokumentumban?', 'expected_keywords': [], 'category': 'Általános'},
+        {'query': 'Mik a kulcsfontosságú fogalmak?', 'expected_keywords': [], 'category': 'Általános'},
+        {'query': 'Milyen dátumok vagy időpontok vannak említve?', 'expected_keywords': [], 'category': 'Általános'},
+        {'query': 'Mik a dokumentumban szereplő főbb szervezetek vagy cégek?', 'expected_keywords': [], 'category': 'Általános'},
+        {'query': 'Milyen helyszínek vagy országok szerepelnek?', 'expected_keywords': [], 'category': 'Általános'},
+        {'query': 'Hogyan kapcsolódik össze az információ a dokumentumban?', 'expected_keywords': [], 'category': 'Általános'},
+        {'query': 'Mi a kapcsolat a különböző részek között?', 'expected_keywords': [], 'category': 'Általános'},
+        {'query': 'Milyen következtetések vonhatók le?', 'expected_keywords': [], 'category': 'Általános'},
+        {'query': 'Mik a dokumentum főbb következményei?', 'expected_keywords': [], 'category': 'Általános'},
+        {'query': 'Mi a dokumentum ajánlása vagy javaslata?', 'expected_keywords': [], 'category': 'Általános'},
+        {'query': 'Mi a pontos definíciója a fő fogalomnak?', 'expected_keywords': [], 'category': 'Általános'},
+        {'query': 'Milyen példák szerepelnek a dokumentumban?', 'expected_keywords': [], 'category': 'Általános'},
+        {'query': 'Mik a dokumentum szerint a legfontosabb tények?', 'expected_keywords': [], 'category': 'Általános'},
+    ],
     'embedding_tests': [
         # Teljesen azonos szövegek (2 teszt)
         {

@@ -77,7 +77,100 @@ class RAGEvaluator:
             'mrr': np.mean(mrr_scores),
             'num_queries': len(queries)
         }
-    
+
+    def evaluate_retrieval_by_keywords(
+        self,
+        test_cases: List[Dict[str, Any]],
+        top_k: int = 5
+    ) -> Dict[str, Any]:
+        """
+        Retrieval minőség értékelése kulcsszó alapon
+
+        Args:
+            test_cases: [{'query': str, 'expected_keywords': [str], 'category': str}]
+            top_k: Top K eredmények
+
+        Returns:
+            Metrikák dict (keyword_metrics, basic_retrieval, details)
+        """
+        keyword_precisions = []
+        keyword_recalls = []
+        keyword_mrrs = []
+        basic_successes = []
+        details = []
+
+        for test in test_cases:
+            query = test['query']
+            expected_keywords = [kw.lower() for kw in test.get('expected_keywords', [])]
+
+            results = self.retrieval_engine.retrieve(query, top_k=top_k)
+
+            if not expected_keywords:
+                success = len(results) > 0
+                basic_successes.append(success)
+                details.append({
+                    'query': query,
+                    'category': test.get('category', ''),
+                    'type': 'basic',
+                    'success': success,
+                    'retrieved_count': len(results)
+                })
+                continue
+
+            relevant_count = 0
+            keywords_found = set()
+            first_relevant_rank = None
+
+            for rank, result in enumerate(results, 1):
+                text = (result.get('text', '') or '').lower()
+                is_relevant = False
+
+                for kw in expected_keywords:
+                    if kw in text:
+                        is_relevant = True
+                        keywords_found.add(kw)
+
+                if is_relevant:
+                    relevant_count += 1
+                    if first_relevant_rank is None:
+                        first_relevant_rank = rank
+
+            precision = relevant_count / len(results) if results else 0
+            recall = len(keywords_found) / len(expected_keywords)
+            mrr = 1.0 / first_relevant_rank if first_relevant_rank else 0
+
+            keyword_precisions.append(precision)
+            keyword_recalls.append(recall)
+            keyword_mrrs.append(mrr)
+
+            details.append({
+                'query': query,
+                'category': test.get('category', ''),
+                'type': 'keyword',
+                'precision': round(precision, 3),
+                'recall': round(recall, 3),
+                'mrr': round(mrr, 3),
+                'retrieved_count': len(results),
+                'relevant_count': relevant_count,
+                'keywords_found': list(keywords_found),
+                'keywords_expected': test.get('expected_keywords', [])
+            })
+
+        return {
+            'keyword_metrics': {
+                'precision': float(np.mean(keyword_precisions)) if keyword_precisions else 0,
+                'recall': float(np.mean(keyword_recalls)) if keyword_recalls else 0,
+                'mrr': float(np.mean(keyword_mrrs)) if keyword_mrrs else 0,
+                'num_queries': len(keyword_precisions)
+            },
+            'basic_retrieval': {
+                'success_rate': float(sum(basic_successes) / len(basic_successes)) if basic_successes else 0,
+                'num_queries': len(basic_successes)
+            },
+            'num_total_queries': len(test_cases),
+            'details': details
+        }
+
     def evaluate_embedding_quality(
         self,
         test_pairs: List[Dict[str, Any]]
@@ -169,10 +262,13 @@ class RAGEvaluator:
         
         # Retrieval értékelés
         if 'retrieval_tests' in test_cases:
-            retrieval_results = self.evaluate_retrieval(
-                test_cases['retrieval_tests']['queries'],
-                test_cases['retrieval_tests']['ground_truth']
-            )
+            rt = test_cases['retrieval_tests']
+            if isinstance(rt, list):
+                retrieval_results = self.evaluate_retrieval_by_keywords(rt)
+            else:
+                retrieval_results = self.evaluate_retrieval(
+                    rt['queries'], rt['ground_truth']
+                )
             results['retrieval_metrics'] = retrieval_results
         
         # Embedding értékelés

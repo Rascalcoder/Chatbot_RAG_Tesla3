@@ -134,6 +134,29 @@ class MetricsCollector:
         self._save_metrics()
         logger.debug(f"Retrieval metrika rögzítve")
 
+    def record_pipeline_event(
+        self,
+        event_type: str,
+        data: Dict[str, Any] = None
+    ):
+        """
+        Pipeline event rögzítése (observability).
+        Pl. translation, retrieval_detail, rerank_detail.
+
+        Args:
+            event_type: Event típusa (pl. 'translation', 'retrieval_detail')
+            data: Event adatai
+        """
+        metric = {
+            'timestamp': datetime.now().isoformat(),
+            'type': f'pipeline_{event_type}',
+            **(data or {})
+        }
+
+        self.metrics.append(metric)
+        self._save_metrics()
+        logger.debug(f"Pipeline event rögzítve: {event_type}")
+
     def record_user_feedback(
         self,
         message_id: str,

@@ -242,7 +242,6 @@ python run_evaluation.py --type all
 ├── 💾 ADATOK
 │   ├── data/vector_db/ ................ ChromaDB adatbázis
 │   ├── model_3.pdf ................... Tesla kézikönyv
-│   ├── HUGGINGFACE_HUB_TOKEN.env ..... HF token config
 │   └── evaluations/ .................. Evaluation eredmények
 │
 └── 📝 PROJEKT FÁJLOK

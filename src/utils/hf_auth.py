@@ -121,11 +121,20 @@ def get_hf_token() -> str | None:
     return token or None
 
 
-def ensure_hf_token_env() -> str | None:
+def ensure_hf_token_env(silent: bool = False) -> str | None:
+    """
+    Ensure HF token is in environment.
+    
+    Args:
+        silent: If True, suppress warning when token is not found (for public models)
+    
+    Returns:
+        Token string or None
+    """
     token = get_hf_token()
     if token and not os.getenv("HUGGINGFACE_HUB_TOKEN"):
         os.environ["HUGGINGFACE_HUB_TOKEN"] = token
-    if not token:
-        logger.warning("HF token not found in environment or token file.")
+    if not token and not silent:
+        logger.warning("HF token not found in environment or token file. This is only needed for gated/private models.")
     return token
 

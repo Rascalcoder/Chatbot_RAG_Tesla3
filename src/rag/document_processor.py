@@ -59,10 +59,11 @@ class DocumentProcessor:
             raise ValueError(f"Ismeretlen fájlformátum: {file_ext}")
     
     def _process_pdf(self, file_path: Path) -> Dict[str, Any]:
-        """PDF fájl feldolgozása"""
+        """PDF fájl feldolgozása oldalszám trackinggel"""
         if PdfReader is None:
             raise ImportError("pypdf nincs telepítve. Telepítsd: pip install pypdf")
         
+        # Oldalszám marker beszúrása minden oldal elején
         text_parts = []
         reader = PdfReader(str(file_path))
         
@@ -70,7 +71,9 @@ class DocumentProcessor:
             try:
                 text = page.extract_text()
                 if text.strip():
-                    text_parts.append(text)
+                    # Oldalszám marker hozzáadása (ezt a chunking során fel tudjuk dolgozni)
+                    page_marker = f"\n\n[PAGE {page_num}]\n"
+                    text_parts.append(page_marker + text)
             except Exception as e:
                 logger.warning(f"Hiba a {page_num}. oldal feldolgozásánál: {e}")
         

@@ -28,7 +28,7 @@ class EmbeddingModel:
             use_openai: Használjon-e OpenAI API-t (True) vagy lokális modellt (False)
         """
         self.use_openai = use_openai
-        self.model_name = model_name or os.getenv('EMBEDDING_MODEL', 'BAAI/bge-m3')
+        self.model_name = model_name or os.getenv('EMBEDDING_MODEL', 'sentence-transformers/all-MiniLM-L6-v2')
         self._model = None
         self._openai_client = None
         
@@ -54,11 +54,13 @@ class EmbeddingModel:
             raise
     
     def _init_local(self):
-        """Lokális embedding modell inicializálása (BGE-M3)"""
+        """Lokális embedding modell inicializálása"""
         try:
-            hf_token = ensure_hf_token_env()
+            # Public models (sentence-transformers/*) don't need HF token
+            is_public = self.model_name.startswith("sentence-transformers/")
+            hf_token = ensure_hf_token_env(silent=is_public)
             
-            # BGE-M3 modell használata FlagEmbedding vagy sentence-transformers-szel
+            # BGE-M3 modell FlagEmbedding-gel (opcionális)
             if 'bge-m3' in self.model_name.lower() or 'BAAI/bge-m3' in self.model_name:
                 try:
                     # Próbáljuk meg a FlagEmbedding-et (ajánlott BGE-M3-höz)
@@ -71,7 +73,7 @@ class EmbeddingModel:
                     self._model = SentenceTransformer(self.model_name, token=hf_token)
                     logger.info(f"BGE-M3 embedding modell inicializálva sentence-transformers-szel: {self.model_name}")
             else:
-                # Egyéb modellek sentence-transformers-szel
+                # Standard sentence-transformers models (e.g., all-MiniLM-L6-v2)
                 from sentence_transformers import SentenceTransformer
                 self._model = SentenceTransformer(self.model_name, token=hf_token)
                 logger.info(f"Lokális embedding modell inicializálva: {self.model_name}")
@@ -163,16 +165,24 @@ class EmbeddingModel:
             if self._model is None:
                 self._init_local()
             
-            # BGE-M3 dimenzió: 1024
-            if 'bge-m3' in self.model_name.lower():
-                return 1024
+            # Known model dimensions
+            dim_map = {
+                'bge-m3': 1024,
+                'all-MiniLM-L6-v2': 384,
+                'all-mpnet-base-v2': 768,
+            }
             
-            # Egyéb modellek
+            # Check if model name matches known models
+            for key, dim in dim_map.items():
+                if key in self.model_name.lower():
+                    return dim
+            
+            # Try to get dimension from model object
             if hasattr(self._model, 'get_sentence_embedding_dimension'):
                 return self._model.get_sentence_embedding_dimension()
             elif hasattr(self._model, 'dim'):
                 return self._model.dim
             else:
-                # Alapértelmezett BGE-M3 dimenzió
-                return 1024
+                # Default to 384 (all-MiniLM-L6-v2 dimension)
+                return 384
 

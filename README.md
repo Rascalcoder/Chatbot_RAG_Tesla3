@@ -220,7 +220,7 @@ Ez a projekt egy záróprojekt része.
 
 ## 👥 Szerző
 
-Projekt készítő: [Név]
+Projekt készítő: Alasztics Pál
 
 ---
 

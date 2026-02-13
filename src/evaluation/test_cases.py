@@ -236,24 +236,133 @@ RAG_TEST_CASES = {
         },
     ],
     'chunking_tests': [
-        # Különböző hosszúságú dokumentumok chunking teszteléséhez
+        # Tesla Model 3 manual-szerű tartalom a chunking teszteléshez
         # min/max chunk_size a konfigurált CHUNK_SIZE alapján számolódik
+
+        # 1. Rövid szekció — egy chunk alatti tartalom (egyetlen fejezet)
         {
-            'document': 'Ez egy rövid dokumentum. Tartalmaz néhány mondatot. Végül van egy befejező mondat.',
+            'document': (
+                '[PAGE 42]\n'
+                'Walk Away Lock\n\n'
+                'Enabling Walk Away Lock\n'
+                'Touchscreen: Controls > Locks > Walk Away Lock\n\n'
+                'When enabled, Model 3 automatically locks when your '
+                'authenticated phone or paired key fob is no longer '
+                'detected nearby. When you walk away carrying your '
+                'phone or key fob, Model 3 automatically locks and '
+                'the mirrors fold (if Fold Mirrors is on). To indicate '
+                'that Model 3 has locked, the exterior lights flash once.\n\n'
+                'NOTE: It may take 1-2 minutes for Model 3 to lock, '
+                'because it waits for the Bluetooth signal of an '
+                'authenticated device to be out of range.'
+            ),
             'expected_chunks': 1,
-            'min_chunk_size': 10,
+            'min_chunk_size': 100,
             'max_chunk_size': _CHUNK_SIZE
         },
+
+        # 2. Többoldalas szekció — page markerekkel, több bekezdéssel
+        #    Teszteli a RecursiveCharacterTextSplitter \n\n szeparátoron való vágását
         {
-            'document': 'Ez egy hosszabb dokumentum. ' * 50 + 'Végül van egy befejező mondat.',
-            'expected_chunks': max(1, round(len('Ez egy hosszabb dokumentum. ' * 50 + 'Végül van egy befejező mondat.') / (_CHUNK_SIZE - _CHUNK_OVERLAP))),
-            'min_chunk_size': 50,
+            'document': (
+                '[PAGE 215]\n'
+                'Tire Care and Maintenance\n\n'
+                'Proper tire maintenance is important for the safety and '
+                'longevity of your tires. Check tire pressures using the '
+                'touchscreen or the tire pressure monitoring system (TPMS). '
+                'The recommended cold tire inflation pressure for Model 3 is '
+                'displayed on the Tire and Loading Information label, located '
+                'on the door pillar.\n\n'
+                'Tire Rotation\n'
+                'Tesla recommends rotating the tires every 10,000 km or if '
+                'tread depth difference is 1.5 mm or greater, whichever comes '
+                'first. Tire rotation is important to ensure even tread wear '
+                'across all four tires.\n\n'
+                '[PAGE 216]\n'
+                'Tire Repair Kit\n\n'
+                'A tire repair kit is included with your Model 3. The kit '
+                'contains a sealant bottle and a compressor. Use the tire '
+                'repair kit only as a temporary solution. The tire must be '
+                'professionally repaired or replaced as soon as possible.\n\n'
+                'Steps to Use the Tire Repair Kit:\n'
+                '1. Park the vehicle on a flat, stable surface.\n'
+                '2. Remove the tire repair kit from the trunk.\n'
+                '3. Connect the sealant bottle to the compressor.\n'
+                '4. Attach the compressor hose to the tire valve stem.\n'
+                '5. Turn on the compressor and inflate the tire to the '
+                'recommended pressure (typically 42 PSI / 2.9 BAR).\n'
+                '6. Drive the vehicle for at least 10 minutes at a speed '
+                'not exceeding 65 km/h (40 mph) to distribute the sealant.\n'
+                '7. After driving, re-check the tire pressure and inflate '
+                'further if necessary.\n\n'
+                'WARNING: Do not use the tire repair kit if the tire has a '
+                'puncture larger than 6 mm in diameter. Do not run the '
+                'compressor for more than 8 minutes continuously to prevent '
+                'overheating.\n\n'
+                '[PAGE 217]\n'
+                'Replacing a Tire\n\n'
+                'If the tire cannot be repaired, contact Tesla Roadside '
+                'Assistance or a qualified tire service provider. When '
+                'replacing tires, always use tires that match the original '
+                'specifications. Mixing different tire brands, sizes, or '
+                'types can adversely affect vehicle handling, ride comfort, '
+                'and tire life.\n\n'
+                'CAUTION: Never exceed the maximum speed rating or load '
+                'capacity indicated on the tire sidewall. Overloading or '
+                'exceeding speed limits can cause tire failure.'
+            ),
+            'expected_chunks': max(1, round(2200 / (_CHUNK_SIZE - _CHUNK_OVERLAP))),
+            'min_chunk_size': 100,
             'max_chunk_size': _CHUNK_SIZE + _CHUNK_OVERLAP
         },
+
+        # 3. Vegyes tartalom — bullet points, figyelmeztetések, táblázatszerű adatok
+        #    Teszteli a splitter viselkedését vegyes formátumú szöveggel
         {
-            'document': 'Első bekezdés. ' * 20 + 'Második bekezdés. ' * 20 + 'Harmadik bekezdés. ' * 20,
-            'expected_chunks': max(1, round(len('Első bekezdés. ' * 20 + 'Második bekezdés. ' * 20 + 'Harmadik bekezdés. ' * 20) / (_CHUNK_SIZE - _CHUNK_OVERLAP))),
-            'min_chunk_size': 50,
+            'document': (
+                '[PAGE 89]\n'
+                'Data Sharing\n\n'
+                'You can choose to share data with Tesla to improve products '
+                'and services. Go to Controls > Software > Data Sharing.\n\n'
+                'Types of data that may be collected:\n'
+                '- Vehicle identifier and configuration\n'
+                '- Driving and charging history\n'
+                '- Autopilot usage data\n'
+                '- Crash data and diagnostic logs\n'
+                '- Infotainment system usage\n\n'
+                'NOTE: Tesla does not sell personal data to third parties. '
+                'All data is anonymized and used solely for product improvement.\n\n'
+                '[PAGE 90]\n'
+                'Telematics\n\n'
+                'Model 3 is equipped with telematics hardware that enables '
+                'connectivity features such as over-the-air software updates, '
+                'remote vehicle monitoring through the Tesla app, and live '
+                'traffic-based navigation routing.\n\n'
+                'Connectivity Packages:\n'
+                '- Standard Connectivity: Software updates, basic navigation, '
+                'remote access via Tesla app.\n'
+                '- Premium Connectivity (subscription required): Live traffic '
+                'visualization, satellite-view maps, video streaming, '
+                'caraoke, internet browser.\n\n'
+                'WARNING: Driving while distracted is dangerous. Do not use '
+                'video streaming or the internet browser while driving. '
+                'Always keep your eyes on the road and hands on the '
+                'steering wheel.\n\n'
+                '[PAGE 91]\n'
+                'Software Updates\n\n'
+                'Tesla periodically releases over-the-air software updates '
+                'to improve functionality, fix bugs, and add new features. '
+                'When an update is available, a notification appears on the '
+                'touchscreen. You can schedule the installation for a '
+                'convenient time.\n\n'
+                'To check for updates: Controls > Software.\n\n'
+                'IMPORTANT: Ensure the vehicle is connected to Wi-Fi and '
+                'has sufficient battery charge (at least 20%) before '
+                'initiating a software update. Updates typically take '
+                '25-45 minutes to install.'
+            ),
+            'expected_chunks': max(1, round(2000 / (_CHUNK_SIZE - _CHUNK_OVERLAP))),
+            'min_chunk_size': 100,
             'max_chunk_size': _CHUNK_SIZE + _CHUNK_OVERLAP
         }
     ]

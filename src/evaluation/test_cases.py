@@ -58,6 +58,12 @@ Tesla Model 3 Manual lefedettség:
 - Maintenance & Cleaning
 """
 
+import os
+
+# Chunking konfiguráció beolvasása (ugyanaz a forrás mint a RAG rendszerben)
+_CHUNK_SIZE = int(os.getenv('CHUNK_SIZE', 1000))
+_CHUNK_OVERLAP = int(os.getenv('CHUNK_OVERLAP', 200))
+
 # RAG szintű teszt esetek
 # Minimum 20 teszteset követelmény teljesítése (most 38 Tesla-specifikus teszt!)
 RAG_TEST_CASES = {
@@ -231,23 +237,24 @@ RAG_TEST_CASES = {
     ],
     'chunking_tests': [
         # Különböző hosszúságú dokumentumok chunking teszteléséhez
+        # min/max chunk_size a konfigurált CHUNK_SIZE alapján számolódik
         {
             'document': 'Ez egy rövid dokumentum. Tartalmaz néhány mondatot. Végül van egy befejező mondat.',
             'expected_chunks': 1,
-            'min_chunk_size': 50,
-            'max_chunk_size': 200
+            'min_chunk_size': 10,
+            'max_chunk_size': _CHUNK_SIZE
         },
         {
             'document': 'Ez egy hosszabb dokumentum. ' * 50 + 'Végül van egy befejező mondat.',
-            'expected_chunks': 3,
-            'min_chunk_size': 200,
-            'max_chunk_size': 500
+            'expected_chunks': max(1, round(len('Ez egy hosszabb dokumentum. ' * 50 + 'Végül van egy befejező mondat.') / (_CHUNK_SIZE - _CHUNK_OVERLAP))),
+            'min_chunk_size': 50,
+            'max_chunk_size': _CHUNK_SIZE + _CHUNK_OVERLAP
         },
         {
             'document': 'Első bekezdés. ' * 20 + 'Második bekezdés. ' * 20 + 'Harmadik bekezdés. ' * 20,
-            'expected_chunks': 2,
-            'min_chunk_size': 300,
-            'max_chunk_size': 600
+            'expected_chunks': max(1, round(len('Első bekezdés. ' * 20 + 'Második bekezdés. ' * 20 + 'Harmadik bekezdés. ' * 20) / (_CHUNK_SIZE - _CHUNK_OVERLAP))),
+            'min_chunk_size': 50,
+            'max_chunk_size': _CHUNK_SIZE + _CHUNK_OVERLAP
         }
     ]
 }

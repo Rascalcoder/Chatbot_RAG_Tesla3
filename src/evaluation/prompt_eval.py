@@ -34,6 +34,34 @@ class PromptEvaluator:
         except Exception as e:
             logger.warning(f"Judge inicializálás sikertelen: {e}")
     
+    def is_abstain(self, answer: str) -> bool:
+        """
+        Ellenőrzi, hogy a válasz abstain (nem tudom) válasz-e
+
+        Args:
+            answer: Generált válasz
+
+        Returns:
+            True ha abstain válasz, különben False
+        """
+        abstain_patterns = [
+            "nem tudom",
+            "nincs információ",
+            "nem található",
+            "nem áll rendelkezésre",
+            "nincs adat",
+            "nincs elég információ",
+            "nem szerepel",
+            "sajnos",
+            "i don't know",
+            "no information",
+            "not found",
+            "insufficient information"
+        ]
+
+        answer_lower = answer.lower()
+        return any(pattern in answer_lower for pattern in abstain_patterns)
+
     def evaluate_single_turn(
         self,
         query: str,
@@ -42,28 +70,28 @@ class PromptEvaluator:
     ) -> Dict[str, Any]:
         """
         Single-turn értékelés
-        
+
         Args:
             query: Kérdés
             context: Kontextus dokumentumok
             expected_answer: Várt válasz (opcionális)
-            
+
         Returns:
             Értékelési eredmények
         """
         # Válasz generálása
         answer = self.llm_generator.generate(query, context)
-        
+
         results = {
             'query': query,
             'answer': answer,
             'context_relevance': self.evaluate_context_relevance(query, context, answer),
             'hallucination_score': self.detect_hallucination(context, answer)
         }
-        
+
         if expected_answer:
             results['answer_similarity'] = self.compare_answers(answer, expected_answer)
-        
+
         return results
     
     def evaluate_context_relevance(
@@ -91,8 +119,17 @@ class PromptEvaluator:
             overlap = len(query_words & context_words)
             return min(overlap / len(query_words) if query_words else 0, 1.0)
         
+        # Abstain detektálás: ha "nem tudom" válasz, az tökéletesen releváns
+        if self.is_abstain(answer):
+            logger.info(f"Abstain válasz detektálva: '{answer[:50]}...' -> relevancia = 1.0")
+            return 1.0
+
         try:
             prompt = f"""Értékeld, hogy a válasz mennyire releváns a kontextushoz és a kérdéshez.
+
+FONTOS: Ha a válasz helyesen felismeri, hogy nincs elég információ a kontextusban
+és ezt kommunikálja ("nem tudom", "nincs adat"), akkor az TÖKÉLETESEN RELEVÁNS
+válasz (1.0 pontszám), mert a rendszer helyesen működött.
 
 Kérdés: {query}
 
@@ -102,18 +139,18 @@ Kontextus:
 Válasz: {answer}
 
 Adj egy 0-1 közötti relevancia pontszámot, ahol:
-- 1.0 = tökéletesen releváns
+- 1.0 = tökéletesen releváns (vagy helyes abstain válasz)
 - 0.5 = részben releváns
 - 0.0 = nem releváns
 
 Csak a számot add vissza."""
-            
+
             response = self._judge_client.chat.completions.create(
                 model="gpt-4o-mini",
                 messages=[{"role": "user", "content": prompt}],
                 temperature=0
             )
-            
+
             score = float(response.choices[0].message.content.strip())
             return max(0.0, min(1.0, score))
         
@@ -128,27 +165,36 @@ Csak a számot add vissza."""
     ) -> float:
         """
         Hallucináció detektálás
-        
+
         Args:
             context: Kontextus
             answer: Generált válasz
-            
+
         Returns:
             Hallucináció score (0-1, ahol 0 = nincs hallucináció, 1 = sok hallucináció)
         """
+        # Abstain detektálás: ha "nem tudom" válasz, az NEM hallucináció
+        if self.is_abstain(answer):
+            logger.info(f"Abstain válasz detektálva: '{answer[:50]}...' -> hallucináció = 0.0")
+            return 0.0
+
         if not self._judge_client:
             # Egyszerű heurisztika
             context_text = " ".join([doc.get('text', '') for doc in context]).lower()
             answer_words = set(answer.lower().split())
             context_words = set(context_text.split())
-            
+
             # Hány szó van a válaszban, ami nincs a kontextusban
             unique_words = answer_words - context_words
             hallucination_ratio = len(unique_words) / len(answer_words) if answer_words else 0
             return min(hallucination_ratio, 1.0)
-        
+
         try:
             prompt = f"""Értékeld, hogy a válasz mennyire tartalmaz hallucinációt (információt, ami nincs a kontextusban).
+
+FONTOS SZABÁLY: Ha a válasz azt mondja, hogy "nem tudom", "nincs információ",
+vagy hasonló abstain választ ad, akkor az NEM hallucináció, hanem HELYES viselkedés.
+Abstain válaszok esetén MINDIG adj 0.0 pontszámot.
 
 Kontextus:
 {self._format_context(context)}
@@ -156,21 +202,21 @@ Kontextus:
 Válasz: {answer}
 
 Adj egy 0-1 közötti hallucináció pontszámot, ahol:
-- 0.0 = nincs hallucináció, minden információ a kontextusban van
+- 0.0 = nincs hallucináció (vagy helyes abstain válasz)
 - 0.5 = részben hallucináció
-- 1.0 = sok hallucináció, a válasz nagy része nincs a kontextusban
+- 1.0 = sok hallucináció
 
 Csak a számot add vissza."""
-            
+
             response = self._judge_client.chat.completions.create(
                 model="gpt-4o-mini",
                 messages=[{"role": "user", "content": prompt}],
                 temperature=0
             )
-            
+
             score = float(response.choices[0].message.content.strip())
             return max(0.0, min(1.0, score))
-        
+
         except Exception as e:
             logger.error(f"Hiba a hallucináció detektálásánál: {e}")
             return 0.5

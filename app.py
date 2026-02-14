@@ -285,20 +285,25 @@ def main_page():
                 full_response = ""
                 context_docs = response.get("context") or []
 
-                # buffereljük, ha karakterenként jön (ne frissítsünk túl gyakran)
-                buffer = ""
-                for chunk in response["generator"]:
-                    buffer += chunk
-                    if len(buffer) >= 32:
+                # Abstain eset: nincs generator, csak answer
+                if "generator" not in response:
+                    full_response = response.get("answer", "")
+                    message_placeholder.markdown(full_response)
+                else:
+                    # buffereljük, ha karakterenként jön (ne frissítsünk túl gyakran)
+                    buffer = ""
+                    for chunk in response["generator"]:
+                        buffer += chunk
+                        if len(buffer) >= 32:
+                            full_response += buffer
+                            buffer = ""
+                            message_placeholder.markdown(full_response + "▌")
+
+                    if buffer:
                         full_response += buffer
-                        buffer = ""
                         message_placeholder.markdown(full_response + "▌")
 
-                if buffer:
-                    full_response += buffer
-                    message_placeholder.markdown(full_response + "▌")
-
-                message_placeholder.markdown(full_response)
+                    message_placeholder.markdown(full_response)
 
                 # LLM metrikák rögzítése streaming után
                 try:

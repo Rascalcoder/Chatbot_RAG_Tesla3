@@ -187,21 +187,17 @@ A monitoring dashboard elérhető a Streamlit alkalmazásban a "Monitoring" olda
 
 ### Tesla Model 3 Kézikönyv Használata
 
-Ha a `model_3.pdf` fájl a projekt könyvtárában van:
+Ha a pl. `model_3.pdf` fájl a projekt könyvtárában van:
 
 **Opció 1: Streamlit app-ban**
 1. Indítsd el az app-ot: `streamlit run app.py`
 2. A sidebar-ban töltsd fel a `model_3.pdf` fájlt
-3. Kérdezz a Model 3-ról!
+3. Kérdezz a TESLA Model 3-ról!
 
-**Opció 2: Teszt script**
-```bash
-python test_model3_manual.py
-```
 
-Ez automatikusan betölti a PDF-et és futtat teszt kérdéseket, majd interaktív módba lép.
 
-**Opció 3: Előre betöltés**
+
+**Opció 2: Előre betöltés**
 ```bash
 python load_model3_manual.py
 ```

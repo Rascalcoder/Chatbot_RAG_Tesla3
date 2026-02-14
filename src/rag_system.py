@@ -387,7 +387,8 @@ class RAGSystem:
         self,
         query: str,
         stream: bool = False,
-        top_k: Optional[int] = None
+        top_k: Optional[int] = None,
+        conversation_history: Optional[list] = None
     ) -> Dict[str, Any]:
         """
         Query futtatása - production-ready pipeline.
@@ -399,6 +400,12 @@ class RAGSystem:
         4. Rerank with English query (chunks are English)
         5. Abstain check: if no relevant evidence, refuse to answer
         6. LLM generation with original query (answer in user's language)
+
+        Args:
+            query: Felhasználói kérdés
+            stream: Streaming válasz generálás
+            top_k: Visszaadott dokumentumok száma
+            conversation_history: Korábbi üzenetek [{'role': 'user'|'assistant', 'content': str}]
         """
         start_time = time.time()
         effective_top_k = top_k or self.top_k
@@ -464,12 +471,13 @@ class RAGSystem:
                 'context': reranked,
                 'stream': True,
                 'generator': self.streaming_generator.generate_stream(
-                    query, reranked, system_message=self.system_message
+                    query, reranked, system_message=self.system_message,
+                    conversation_history=conversation_history
                 )
             }
         else:
             response_start = time.time()
-            answer = self.llm_generator.generate(query, reranked, system_message=self.system_message)
+            answer = self.llm_generator.generate(query, reranked, system_message=self.system_message, conversation_history=conversation_history)
             response_time = time.time() - response_start
 
             # Token estimation & cost

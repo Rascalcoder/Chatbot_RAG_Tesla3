@@ -137,7 +137,9 @@ class AppEvaluator:
                 'success': False
             }
 
-        response = self.rag_system.query(query)
+        response = self.rag_system.query(
+            query, conversation_history=self._messages_history or None
+        )
         step_time = time.time() - step_start
 
         self._last_query_result = response
@@ -146,7 +148,6 @@ class AppEvaluator:
         self._messages_history.append({
             'role': 'assistant',
             'content': response.get('answer', ''),
-            'metadata': response.get('metadata', {})
         })
 
         quality_score = self._evaluate_response_quality(

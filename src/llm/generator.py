@@ -103,27 +103,29 @@ class LLMGenerator:
         self,
         prompt: str,
         context: Optional[List[Dict[str, Any]]] = None,
-        system_message: str = None
+        system_message: str = None,
+        conversation_history: Optional[List[Dict[str, str]]] = None
     ) -> str:
         """
         Válasz generálása
-        
+
         Args:
             prompt: Felhasználói prompt
             context: Kontextus dokumentumok listája
             system_message: Rendszerüzenet
-            
+            conversation_history: Korábbi üzenetek [{'role': 'user'|'assistant', 'content': str}]
+
         Returns:
             Generált válasz
         """
         if self.use_openai:
-            return self._generate_openai(prompt, context, system_message)
+            return self._generate_openai(prompt, context, system_message, conversation_history)
         else:
-            return self._generate_local(prompt, context, system_message)
+            return self._generate_local(prompt, context, system_message, conversation_history)
     
-    def _generate_openai(self, prompt: str, context: Optional[List[Dict[str, Any]]], system_message: Optional[str]) -> str:
+    def _generate_openai(self, prompt: str, context: Optional[List[Dict[str, Any]]], system_message: Optional[str], conversation_history: Optional[List[Dict[str, str]]] = None) -> str:
         """OpenAI API-val generálás"""
-        messages = self._build_messages(prompt, context, system_message)
+        messages = self._build_messages(prompt, context, system_message, conversation_history)
         
         try:
             response = self._client.chat.completions.create(
@@ -142,15 +144,22 @@ class LLMGenerator:
             logger.error(f"Hiba a válasz generálásánál: {e}")
             raise
     
-    def _generate_local(self, prompt: str, context: Optional[List[Dict[str, Any]]], system_message: Optional[str]) -> str:
+    def _generate_local(self, prompt: str, context: Optional[List[Dict[str, Any]]], system_message: Optional[str], conversation_history: Optional[List[Dict[str, str]]] = None) -> str:
         """Lokális Qwen modelllel generálás"""
         try:
+            # Conversation history formázása
+            history_text = ""
+            if conversation_history:
+                for msg in conversation_history[-6:]:  # Utolsó 3 pár (6 üzenet)
+                    role_label = "Felhasználó" if msg['role'] == 'user' else "Asszisztens"
+                    history_text += f"{role_label}: {msg['content']}\n\n"
+
             # Prompt formázása Qwen formátumhoz
             if context:
                 context_text = self._format_context(context)
-                full_prompt = f"{system_message or ''}\n\nKontextus:\n{context_text}\n\nKérdés: {prompt}\n\nVálasz:"
+                full_prompt = f"{system_message or ''}\n\n{history_text}Kontextus:\n{context_text}\n\nKérdés: {prompt}\n\nVálasz:"
             else:
-                full_prompt = f"{system_message or ''}\n\nKérdés: {prompt}\n\nVálasz:"
+                full_prompt = f"{system_message or ''}\n\n{history_text}Kérdés: {prompt}\n\nVálasz:"
             
             # Tokenizálás
             inputs = self._tokenizer(full_prompt, return_tensors="pt")
@@ -185,20 +194,29 @@ class LLMGenerator:
         self,
         prompt: str,
         context: Optional[List[Dict[str, Any]]],
-        system_message: Optional[str]
+        system_message: Optional[str],
+        conversation_history: Optional[List[Dict[str, str]]] = None
     ) -> List[Dict[str, str]]:
-        """Üzenetek listájának összeállítása"""
+        """Üzenetek listájának összeállítása conversation history-val"""
         messages = []
-        
+
         # Rendszerüzenet
         if system_message is None:
             system_message = """Te egy segítőkész AI asszisztens vagy, aki a megadott dokumentumok alapján válaszol.
 Használd a kontextust, hogy pontos és releváns válaszokat adj. Ha az információ nincs a kontextusban,
 mondd el, hogy nem tudod megválaszolni a kérdést a rendelkezésre álló információk alapján."""
-        
+
         messages.append({"role": "system", "content": system_message})
-        
-        # Kontextus hozzáadása
+
+        # Korábbi üzenetek beszúrása (utolsó 3 pár = 6 üzenet max)
+        if conversation_history:
+            for msg in conversation_history[-6:]:
+                messages.append({
+                    "role": msg['role'],
+                    "content": msg['content']
+                })
+
+        # Aktuális kérdés kontextussal
         if context:
             context_text = self._format_context(context)
             messages.append({
@@ -207,7 +225,7 @@ mondd el, hogy nem tudod megválaszolni a kérdést a rendelkezésre álló info
             })
         else:
             messages.append({"role": "user", "content": prompt})
-        
+
         return messages
     
     def _format_context(self, context: List[Dict[str, Any]]) -> str:

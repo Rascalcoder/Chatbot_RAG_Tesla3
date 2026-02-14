@@ -217,6 +217,8 @@ def main_page():
                     try:
                         st.session_state.rag_system.add_documents(file_paths)
                         st.success(f"{len(file_paths)} dokumentum sikeresen hozzáadva!")
+                        # Automatikus oldal frissítés a dokumentum szám frissítéséhez
+                        st.rerun()
                     except Exception as e:
                         st.error(f"Hiba a dokumentumok hozzáadásánál: {e}")
                         logger.error(f"Dokumentum hozzáadás hiba: {e}")
@@ -267,8 +269,17 @@ def main_page():
         assistant_msg_id = str(uuid.uuid4())
         with st.chat_message("assistant"):
             try:
+                # Conversation history összeállítása (utolsó üzenetek)
+                chat_history = [
+                    {"role": m["role"], "content": m["content"]}
+                    for m in st.session_state.messages[:-1]  # aktuális user msg nélkül
+                    if m.get("content")
+                ]
+
                 # Streaming válasz
-                response = st.session_state.rag_system.query(prompt, stream=True)
+                response = st.session_state.rag_system.query(
+                    prompt, stream=True, conversation_history=chat_history
+                )
 
                 message_placeholder = st.empty()
                 full_response = ""

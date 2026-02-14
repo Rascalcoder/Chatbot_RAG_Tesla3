@@ -208,11 +208,6 @@ python load_model3_manual.py
 
 Ez előre betölti a dokumentumot, így a Streamlit app indításakor már elérhető lesz.
 
-## 🎥 Videó Prezentációk
-
-A projekthez 2 db Loom videó készül:
-1. **Technikai bemutató** (5 perc): Architektúra, RAG pipeline, evaluation framework, monitoring
-2. **Felhasználói demo** (5 perc): Dokumentum feltöltés, kérdések, hibakezelés, teljesítmény
 
 ## 📄 Licenc
 
